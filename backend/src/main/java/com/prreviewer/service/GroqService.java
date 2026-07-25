@@ -8,11 +8,13 @@ import com.prreviewer.exception.PrReviewException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,15 @@ public class GroqService {
     public GroqService(@Value("${groq.api-base-url}") String apiBaseUrl,
                         @Value("${groq.api-key}") String apiKey,
                         @Value("${groq.model}") String model) {
-        this.restClient = RestClient.builder().baseUrl(apiBaseUrl).build();
+        // Forcing HTTP/1.1 avoids intermittent "handshake terminated" errors the JDK's
+        // default HttpClient hits negotiating HTTP/2 against Groq's TLS termination.
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        this.restClient = RestClient.builder()
+                .baseUrl(apiBaseUrl)
+                .requestFactory(new JdkClientHttpRequestFactory(httpClient))
+                .build();
         this.apiKey = apiKey;
         this.model = model;
     }
