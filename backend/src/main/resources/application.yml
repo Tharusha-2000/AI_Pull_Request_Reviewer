@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-pr-reviewer
+
+# All secrets are read from environment variables — never commit real keys.
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+github:
+  token: ${GITHUB_TOKEN:}
+  api-base-url: https://api.github.com
+
+groq:
+  api-key: ${GROQ_API_KEY:}
+  api-base-url: https://api.groq.com/openai/v1
+  model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+
+review:
+  # Groq's free tier caps llama-3.3-70b-versatile at 12,000 tokens/minute (prompt + completion).
+  # Keep this low enough that large diffs don't blow past that limit.
+  max-diff-chars: ${MAX_DIFF_CHARS:24000}
